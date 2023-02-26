@@ -1,4 +1,5 @@
 import math
+import random
 import pandas as pd
 import time
 from collections import deque
@@ -12,8 +13,10 @@ root, song_label, current_heartrate = None, None, None
 sp, player = None, None
 index = 0
 
+user_queue = deque()
+
 def initialize():
-    global sp, player, df
+    global sp, player, df, song_queues
 
     df = pd.read_csv("../data/UserTracks.csv", header=0)
 
@@ -21,15 +24,19 @@ def initialize():
         tempo = math.floor(row['Tempo']/10) * 10
 
         if tempo not in song_queues:
-            song_queues[tempo] = deque()
+            song_queues[tempo] = []
         song_queues[tempo].append((row['Track Name'], row['id']))
+    
+    for key, lst in song_queues.items():
+        random.shuffle(lst)
+        song_queues[key] = deque(lst)
+    
 
     df = pd.read_csv("../data/Exercise_G_cleaned.txt", sep=" ", header=0)
-
-    cid = 'b68f441e3f5b45988f09af6a4d151f9a'
-    secret = '928b1fe81599460dbfea921c25c238b9'
+    cid = '93386766d8f54f0fa5a8aebd30b14296'
+    secret = '6be032e5e0ed43c2bef1c9a82925ab6f'
     red='http://localhost:7777/callback'
-    username = 'yanytheboy'
+    username = 'aditya8502'
     scope = 'user-read-playback-state'
 
     token = SpotifyOAuth(username= username, scope=scope, client_id =cid, client_secret=secret, redirect_uri=red)
@@ -41,8 +48,11 @@ def initialize():
     else:
         print("Can't get token for", username)
 
-    # track = sp.current_user_playing_track()
-    # print(track['item']['name'])
+    addSongToQueue(0)
+    cur = user_queue.popleft()
+    # print(sp.current_user_playing_track())
+    feature = sp.audio_features(cur[1])
+    player.start_playback(uris=[feature[0]['uri']])
 
 
 def create_window():
@@ -70,17 +80,17 @@ def create_window():
         label.configure(image=frame)
         root.after(100, update, ind)
     root.after(0, update, 0)
-    root.mainloop()
 
 def updater():    
     global index
 
     if index == len(df):
         exit(0)
-
+    
     song_label.configure(text=sp.current_user_playing_track()['item']['name'])
 
     cur = df.iloc[index]
+
     current_heartrate.configure(text=cur)
 
     index += 1
@@ -89,9 +99,20 @@ def updater():
     root.after(1000, updater)
 
 
+def addSongToQueue(heart_index:int):
+    current_heartrate = df.iloc[heart_index]['heart-rate']
+
+    key = math.floor(current_heartrate/10) * 10
+
+    song = song_queues[key].popleft()
+    user_queue.append(song)
+    song_queues[key].append(song)
+
+
 def run():
     initialize()
     create_window()
+    addSongToQueue(1)
 
     updater()
     root.mainloop()
