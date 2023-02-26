@@ -19,42 +19,52 @@ from sklearn.neighbors import NearestNeighbors
 from dataCollection import dataCollection
 from sklearn.preprocessing import MinMaxScaler
 from sklearn import preprocessing
+import pickle
 
-global user_tracks
-global unlistened 
+class Model:
+    def __init__(self):
+        self.user_tracks = None
+        self.unlistened = None
+        self.knn = None
 
-def getPlaylist(song_names):
-    reval = pd.DataFrame()
-    for song in song_names:
-        metadata = user_tracks.loc[(user_tracks['Track Name'] == song) &(user_tracks['Artist'] == song_names[song])].drop(columns = ['id','Track Name','Artist','Liked'])
-        metadata =sklearn.preprocessing.normalize(metadata, axis=1)
-        distances , indices = knn.kneighbors(metadata,n_neighbors=21)
-        indis = sorted(list(zip(indices.squeeze().tolist(),distances.squeeze().tolist())),key=lambda x: x[1],reverse=True)[:0:-1]
-        recommend_frame = []
-        for index,distance in indis:
-            recommend_frame.append({'Title':unlistened.iloc[index]['Track Name'],'Artist':unlistened.iloc[index]['Artist'], 'Id':unlistened.iloc[index]['id']})
-        reccs = pd.DataFrame(recommend_frame[0:1])
-        reval = reval.append(reccs)
-    return reval.reset_index(drop=True)
+        self.__init_model()
+    
+    def __init_model(self):
+        dt = pd.read_csv('../data/dt.csv')
+        dt= dt.drop(columns= ['Unnamed: 0'])
+        song_data = dt.drop(columns=['id','Track Name','Artist','Liked'])
+        scaler = preprocessing.MinMaxScaler()
+        names = song_data.columns
+        dt[names] = scaler.fit_transform(dt[names])
+        self.unlistened = dt.loc[dt['Liked']==0]
+        self.user_tracks = dt.loc[dt['Liked']==1]
+        song_data = self.unlistened.drop(columns=['id','Track Name','Artist','Liked'])   
+        #training model
+        self.knn = NearestNeighbors(metric='cosine', algorithm='brute', n_neighbors=21, n_jobs=-1)
+        self.knn.fit(song_data)
 
+    def getPlaylist(self, song_names):
+        self.user_tracks = pd.read_csv('../data/UserTracks.csv')
+        reval = pd.DataFrame()
+        for song in song_names:
+            metadata = self.user_tracks.loc[(self.user_tracks['Track Name'] == song) &(self.user_tracks['Artist'] == song_names[song])].drop(columns = ['id','Unnamed: 0','uri','Track Name','Artist','Liked'])
+            
+            metadata = sklearn.preprocessing.normalize(metadata, axis=1)
+            distances , indices = self.knn.kneighbors(metadata,n_neighbors=21)
+            indis = sorted(list(zip(indices.squeeze().tolist(),distances.squeeze().tolist())),key=lambda x: x[1],reverse=True)[:0:-1]
+            recommend_frame = []
+            for index,distance in indis:
+                recommend_frame.append({'Title':self.unlistened.iloc[index]['Track Name'],'Artist':self.unlistened.iloc[index]['Artist'], 'Id':self.unlistened.iloc[index]['id']})
+            reccs = pd.DataFrame(recommend_frame)
+            reval = reval.append(reccs)
+        print(reval.reset_index(drop=True))
+        return reval.reset_index(drop=True)
 
 if __name__ == "__main__":
-    dt = pd.read_csv('../data/dt.csv')
-    dt= dt.drop(columns= ['Unnamed: 0'])
-    song_data = dt.drop(columns=['id','Track Name','Artist','Liked'])
-    scaler = preprocessing.MinMaxScaler()
-    names = song_data.columns
-    dt[names] = scaler.fit_transform(dt[names])
-    unlistened = dt.loc[dt['Liked']==0]
-    user_tracks = dt.loc[dt['Liked']==1]
-    song_data = unlistened.drop(columns=['id','Track Name','Artist','Liked'])   
-    #training model
-    knn = NearestNeighbors(metric='cosine', algorithm='brute', n_neighbors=21, n_jobs=-1)
-    knn.fit(song_data)
-
-    songrecs = {'Glimpse of Us':'Joji'}
+    songrecs = {'':'Jaden'}
 
     #getting playlist
-    playlist = getPlaylist(songrecs)
+    m = Model()
+    playlist = m.getPlaylist(songrecs)
     print(playlist)
     
