@@ -123,12 +123,20 @@ def update_queue():
     addSongToQueue(df.iloc[index]['heart-rate'])
 
 def addSongToQueue(hr):
+    r = random.randint(1, 2)
 
     key = math.floor(hr/10) * 10
     song = song_queues[key].popleft()
 
-    features = sp.audio_features(song[1])
-    player.add_to_queue(features[0]['uri'])
+    if r == 1:
+        print("Used queue")
+        features = sp.audio_features(song[1])
+        player.add_to_queue(features[0]['uri'])
+    else:
+        print("Used model.")
+        recommendation = model.getPlaylist(song[0])
+        features = sp.audio_features(recommendation.iloc[0]['Id'])
+        player.add_to_queue(features[0]['uri'])
 
     song_queues[key].append(song)
 

@@ -44,6 +44,7 @@ class Model:
         self.knn.fit(song_data)
 
     def getPlaylist(self, song_names):
+        self.__init_model()
         self.user_tracks = pd.read_csv('../data/UserTracks.csv')
         reval = pd.DataFrame()
         for song in song_names:
@@ -57,7 +58,6 @@ class Model:
                 recommend_frame.append({'Title':self.unlistened.iloc[index]['Track Name'],'Artist':self.unlistened.iloc[index]['Artist'], 'Id':self.unlistened.iloc[index]['id']})
             reccs = pd.DataFrame(recommend_frame)
             reval = reval.append(reccs)
-        print(reval.reset_index(drop=True))
         return reval.reset_index(drop=True)
 
 if __name__ == "__main__":
