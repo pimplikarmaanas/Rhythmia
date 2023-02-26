@@ -32,8 +32,8 @@ def getPlaylist(song_names):
         indis = sorted(list(zip(indices.squeeze().tolist(),distances.squeeze().tolist())),key=lambda x: x[1],reverse=True)[:0:-1]
         recommend_frame = []
         for index,distance in indis:
-            recommend_frame.append({'Title':unlistened.iloc[index]['Track Name'],'Artist':unlistened.iloc[index]['Artist']})
-        reccs = pd.DataFrame(recommend_frame)
+            recommend_frame.append({'Title':unlistened.iloc[index]['Track Name'],'Artist':unlistened.iloc[index]['Artist'], 'Id':unlistened.iloc[index]['id']})
+        reccs = pd.DataFrame(recommend_frame[0:1])
         reval = reval.append(reccs)
     return reval.reset_index(drop=True)
 
@@ -52,7 +52,7 @@ if __name__ == "__main__":
     knn = NearestNeighbors(metric='cosine', algorithm='brute', n_neighbors=21, n_jobs=-1)
     knn.fit(song_data)
 
-    songrecs = {'Ditto':'NewJeans'}
+    songrecs = {'Glimpse of Us':'Joji'}
 
     #getting playlist
     playlist = getPlaylist(songrecs)
