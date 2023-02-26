@@ -48,13 +48,13 @@ if __name__ == "__main__":
     unlistened = dt.loc[dt['Liked']==0]
     user_tracks = dt.loc[dt['Liked']==1]
     song_data = unlistened.drop(columns=['id','Track Name','Artist','Liked'])   
-    
+    #training model
     knn = NearestNeighbors(metric='cosine', algorithm='brute', n_neighbors=21, n_jobs=-1)
     knn.fit(song_data)
 
     songrecs = {'Ditto':'NewJeans'}
 
-
+    #getting playlist
     playlist = getPlaylist(songrecs)
     print(playlist)
     
