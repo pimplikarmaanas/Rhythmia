@@ -8,13 +8,12 @@ import tkinter as tk
 from PIL import ImageTk, Image
 
 song_queues, df = {}, None
-root, song_label, current_heartrate = None, None, None
+root, song_label, current_heartrate, song_tempo = None, None, None, None
 sp, player = None, None
 index = 0
 
 def initialize():
     global sp, player, df
-
     df = pd.read_csv("../data/UserTracks.csv", header=0)
 
     for index, row in df.iterrows():
@@ -44,33 +43,42 @@ def initialize():
     # track = sp.current_user_playing_track()
     # print(track['item']['name'])
 
+def _from_rgb(rgb):
+    """translates an rgb tuple of int to a tkinter friendly color code
+    """
+    return "#%02x%02x%02x" % rgb   
 
 def create_window():
-    global root, song_label, current_heartrate
-
+    global root, song_label, current_heartrate, song_tempo
+    font_tuple = ("Segoe UI", 12)
     root = tk.Tk()
+    bg_color = 'white'
     root.geometry("800x800")
-    song_text = tk.Label(text="Currently playing:", height=5)
-    song_label = tk.Label(text="Was goody", width=25, height=5)
-    current_heartrate = tk.Label(text="", width=25, height=10)
+    root.configure(bg=bg_color)
+    song_label = tk.Label(font = font_tuple, text="Currently playing:",bg=bg_color)
+    song_tempo = tk.Label(font = font_tuple, text="", bg=bg_color)
+
+    current_heartrate = tk.Label(font = font_tuple, text="", bg=bg_color)
     path = "./images/stickfigure_running.gif"
     photo = ImageTk.PhotoImage(Image.open(path))
-    label = tk.Label(root, image = photo)
-    label.pack()
-    frameCnt = 5
+    label = tk.Label(root, image = photo, bg=bg_color)
+
+    label.pack(pady=20)
+    frameCnt = 9
     frames = [tk.PhotoImage(file=path, format = 'gif -index %i' %(i)) for i in range(frameCnt)]
-    song_text.pack(pady=100)
     song_label.pack()
+    song_tempo.pack()
     current_heartrate.pack()
     def update(ind):
         frame = frames[ind]
         ind += 1
         if ind == frameCnt:
             ind = 0
-        label.configure(image=frame)
-        root.after(100, update, ind)
+        speed = int((200-df.iloc[index]['heart-rate'])/2)
+        new_color = _from_rgb((255,0,0))
+        label.configure(image=frame,bg=new_color)
+        root.after(speed, update, ind)
     root.after(0, update, 0)
-    root.mainloop()
 
 def updater():    
     global index
@@ -78,7 +86,15 @@ def updater():
     if index == len(df):
         exit(0)
 
-    song_label.configure(text=sp.current_user_playing_track()['item']['name'])
+    
+    current_song = sp.current_user_playing_track()
+    try:
+        tempo = sp.audio_features(tracks=[current_song['item']['uri']])[0]['tempo']
+    except:
+        print("Can't get tempo")
+
+    song_label.configure(text="Current Song: "+current_song['item']['name'])
+    song_tempo.configure(text=tempo)
 
     cur = df.iloc[index]
     current_heartrate.configure(text=cur)
@@ -86,7 +102,7 @@ def updater():
     index += 1
 
     # call again after each second
-    root.after(1000, updater)
+    root.after(2000, updater)
 
 
 def run():
