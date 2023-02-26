@@ -45,6 +45,7 @@ class Model:
 
     def getPlaylist(self, song_names):
         self.__init_model()
+
         self.user_tracks = pd.read_csv('../data/UserTracks.csv')
         reval = pd.DataFrame()
         for song in song_names:
@@ -59,12 +60,3 @@ class Model:
             reccs = pd.DataFrame(recommend_frame)
             reval = reval.append(reccs)
         return reval.reset_index(drop=True)
-
-if __name__ == "__main__":
-    songrecs = {'':'Jaden'}
-
-    #getting playlist
-    m = Model()
-    playlist = m.getPlaylist(songrecs)
-    print(playlist)
-    
