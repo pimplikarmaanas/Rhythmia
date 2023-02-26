@@ -75,11 +75,11 @@ def updater():
 
 
 def run():
+    initialize()
     create_window()
 
     updater()
     root.mainloop()
 
 if __name__ == "__main__":
-    initialize()
     run()
