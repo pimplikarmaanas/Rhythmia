@@ -5,6 +5,7 @@ from collections import deque
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 import tkinter as tk
+from PIL import ImageTk, Image
 
 song_queues, df = {}, None
 root, song_label, current_heartrate = None, None, None
@@ -25,10 +26,10 @@ def initialize():
 
     df = pd.read_csv("../data/Exercise_G_cleaned.txt", sep=" ", header=0)
 
-    cid = '93386766d8f54f0fa5a8aebd30b14296'
-    secret = '6be032e5e0ed43c2bef1c9a82925ab6f'
+    cid = 'b68f441e3f5b45988f09af6a4d151f9a'
+    secret = '928b1fe81599460dbfea921c25c238b9'
     red='http://localhost:7777/callback'
-    username = 'd0ngus'
+    username = 'yanytheboy'
     scope = 'user-read-playback-state'
 
     token = SpotifyOAuth(username= username, scope=scope, client_id =cid, client_secret=secret, redirect_uri=red)
@@ -52,10 +53,24 @@ def create_window():
     song_text = tk.Label(text="Currently playing:", height=5)
     song_label = tk.Label(text="Was goody", width=25, height=5)
     current_heartrate = tk.Label(text="", width=25, height=10)
-
+    path = "./images/stickfigure_running.gif"
+    photo = ImageTk.PhotoImage(Image.open(path))
+    label = tk.Label(root, image = photo)
+    label.pack()
+    frameCnt = 5
+    frames = [tk.PhotoImage(file=path, format = 'gif -index %i' %(i)) for i in range(frameCnt)]
     song_text.pack(pady=100)
     song_label.pack()
     current_heartrate.pack()
+    def update(ind):
+        frame = frames[ind]
+        ind += 1
+        if ind == frameCnt:
+            ind = 0
+        label.configure(image=frame)
+        root.after(100, update, ind)
+    root.after(0, update, 0)
+    root.mainloop()
 
 def updater():    
     global index
