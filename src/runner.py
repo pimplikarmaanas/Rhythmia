@@ -8,6 +8,12 @@ from spotipy.oauth2 import SpotifyOAuth
 import tkinter as tk
 from PIL import ImageTk, Image
 from model import Model
+import sys
+
+# Client information
+CLIENT_ID = ''
+CLIENT_SECRET = ''
+CLIENT_USERNAME = ''
 
 song_queues, df = {}, None
 root, song_label, current_heartrate, song_tempo = None, None, None, None
@@ -37,13 +43,12 @@ def initialize():
 
     df = pd.read_csv("../data/Exercise_G_cleaned.txt", sep=" ", header=0)
 
-    cid = '57ef9b0e6675422b85dd36560b6858b2'
-    secret = 'c8c81952436b4836afb1ff32ae6417da'
+    cid = CLIENT_ID
+    secret = CLIENT_SECRET
     red='http://localhost:7777/callback'
-    username = 'd0ngus'
-    scope = 'user-read-playback-state'
+    username = CLIENT_USERNAME
 
-    token = SpotifyOAuth(username= username, scope=scope, client_id =cid, client_secret=secret, redirect_uri=red)
+    token = SpotifyOAuth(username= username, scope='user-read-playback-state', client_id =cid, client_secret=secret, redirect_uri=red)
     player_token = SpotifyOAuth(username= username, scope='user-modify-playback-state', client_id =cid, client_secret=secret, redirect_uri=red)
 
     if token:
@@ -51,6 +56,7 @@ def initialize():
         player = spotipy.Spotify(auth_manager=player_token)
     else:
         print("Can't get token for", username)
+        sys.exit()
 
     addSongToQueue(df.iloc[0]['heart-rate'])
     prev_song = sp.current_user_playing_track()['item']['id']
