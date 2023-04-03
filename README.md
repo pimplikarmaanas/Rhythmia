@@ -19,3 +19,9 @@ Overall, we learned to integrate an AI model with continuous API calls.  Along w
 ## What's next for Rhythmia
 
 In the future, Rhythmia is looking to use either FitBit or AppleHealth API to allow users to have a fully functional interface while they are running. This will be in the form of an Apple application and/or a WatchOS app. Furthermore, we look to add another mode called "Program" where a user can set their target and minimum BPM and they can work up to that BPM and slow down if they need to. 
+
+## Demo
+[Here](https://www.youtube.com/watch?v=27Py8e6_Csk) is a link to a demo that we used.
+
+# Context
+Since we haven't implemented the use of FitBit or AppleHealth API, we found a dataset which contained the heartbeat at certain times of an athlete while running. This heartbeat is then used as the data for Rhythmia. It can be seen that the Spotify queue is being updated with faster paced songs, which correlate to the runners heartrate.
